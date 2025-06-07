@@ -206,3 +206,91 @@ class PhysicsObject:
     
     def draw(self):
         pygame.draw.rect(self.exportSurface, self.color, self.rect)
+
+class CoffeeStat:
+    def __init__(self, beantype = "arabica"):
+        self.beanRoastFlavours = {
+            "arabica": {"roastTimes": [5, 10, 15, 20], "flavours": ["citrus", "caramel", "smoky"]},
+            "robusta": {"roastTimes": [5, 10, 15, 20], "flavours": ["citrus", "spice", "dark chocolate"]},
+            "excelsa": {"roastTimes": [5, 10, 15, 20], "flavours": ["floral", "caramel", "bold"]},
+            "liberica": {"roastTimes": [5, 10, 15, 20], "flavours": ["fruity", "nutty", "smoky"]}
+        }
+        self.grindTextures = [
+            "saturated",
+            "smooth",
+            "creamy"
+        ]
+        self.coffeeTypes = [
+            "pour over",
+            "siphon",
+            "espresso",
+            "americano",
+            "latte"
+            "doppio"
+        ]
+
+        self.beantype = beantype
+
+        self.roasted = False
+        self.beanRoastFlavour = None
+
+        self.grinded = False
+        self.grindTexture = None
+
+        self.brewed = False
+        self.brewType = None
+
+
+        self.doppio = False
+        self.doppioRoastFlavour = None
+        self.doppioGrindTexture = None
+
+    def roast(self, time):
+        if time < self.beanRoastFlavours[self.beantype]["roastTimes"][0] or time > self.beanRoastFlavours[self.beantype]["roastTimes"][-1]:
+            self.beanRoastFlavour = "bad"
+        elif time < self.beanRoastFlavours[self.beantype]["roastTimes"][1]:
+            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][1]
+        elif time < self.beanRoastFlavours[self.beantype]["roastTimes"][2]:
+            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][2]
+        elif time < self.beanRoastFlavours[self.beantype]["roastTimes"][3]:
+            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][3]
+        else:
+            self.beanRoastFlavour = "impossible!?"
+
+        self.roasted = True
+
+    def grind(self, setting):
+        self.grindTexture = self.grindTextures[setting - 1]
+        self.grinded = True
+
+    def isValidBrewMethod(self, brewMethod):
+        if not self.brewed:
+            return True
+        elif self.brewType == "espresso" and brewMethod == "espresso":
+            return True
+        else:
+            return False
+
+    def brew(self, brewMethod):
+        if brewMethod != "espresso":
+            self.brewType = brewMethod
+        else:
+            if self.brewed:
+                self.brewType = "doppio"
+            else:
+                self.brewType = "espresso"
+        self.brewed = True
+
+    def doppioStat(self, newStat):
+        self.doppio = True
+        if newStat.beanRoastFlavour != self.beanRoastFlavour:
+            self.doppioRoastFlavour = f'{self.beanRoastFlavour} & {newStat.beanRoastFlavour}'
+        else:
+            self.doppioRoastFlavour = self.beanRoastFlavour
+        
+        if newStat.grindTexture != self.grindTexture:
+            self.doppioGrindTexture = 'mixed'
+        else:
+            self.doppioGrindTexture = self.grindTexture
+
+        self.brewType = "doppio"
