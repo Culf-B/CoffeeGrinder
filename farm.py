@@ -1,13 +1,9 @@
-from random import choice, randint
+from random import randint
 import pygame
 pygame.init()
 
-class Farm:
-    def __init__(self):
-        pass
-
 class Tile:
-    def __init__(self, surface, position, cropType = "random"):
+    def __init__(self, surface, position, cropType = None):
         self.cropTypes = ["coffee", "tea", "wheat"]
         self.cropTypeToFilename = {
             "coffee": "kaffeplanteSpritesheet.png",
@@ -22,39 +18,93 @@ class Tile:
         self.minDays = 5 # Also in seconds...
         self.daysPassed = 0 # In seconds too......
         self.daysToGrow = self.generateNewStateChangeTime()
+        
+        self.rect = pygame.Rect(self.position, self.spriteSize)
+
+        self.cropType = cropType
+
+        if self.cropType != None:
+            self.planted = True
+        else:
+            self.planted = False
 
         self.exportSurface = surface
         self.position = position
 
-        if cropType == "random":
-            self.cropType = choice(self.cropTypes)
-        else:
-            self.cropType = cropType
+        if self.planted:
+            self.spriteSheet = self.loadImage()
 
+        self.mouseState = False
+    
+    def loadImage(self):
         # Check if asset exists
         if self.cropTypeToFilename[self.cropType]:
-            self.spritesheet = pygame.image.load(f'./assets/{self.cropTypeToFilename[self.cropType]}').convert_alpha()
+            return pygame.image.load(f'./assets/{self.cropTypeToFilename[self.cropType]}').convert_alpha()
         else:
-            self.spritesheet = pygame.surface.Surface([self.spriteSize[0], self.spriteSize[1] * self.states])
-    
+            return pygame.surface.Surface([self.spriteSize[0], self.spriteSize[1] * self.states])
+
     def generateNewStateChangeTime(self):
         return randint(self.minDays, self.maxDays)
     
-    def update(self, daysPassed):
-        if not self.ready:
-            self.daysPassed += daysPassed
-            if self.daysPassed >= self.daysToGrow:
-                if self.currentState < self.states - 1:
-                    self.daysToGrow = self.generateNewStateChangeTime()
-                    self.daysPassed = 0
-                    self.currentState += 1
-                else:
-                    self.currentState = self.states
-                    self.ready = True
-                    print("Ready")
+    def update(self, daysPassed, toolSelected):
+        if self.planted:
+            if self.ready and toolSelected == "harvester":
+                if self.mouseState != pygame.mouse.get_pressed()[0]:
+                    self.mouseState = pygame.mouse.get_pressed()[0]
+                    if not self.mouseState and self.rect.collidepoint(pygame.mouse.get_pos()):
+                        self.harvest()
+            else:
+                self.daysPassed += daysPassed
+                if self.daysPassed >= self.daysToGrow:
+                    if self.currentState < self.states - 1:
+                        self.daysToGrow = self.generateNewStateChangeTime()
+                        self.daysPassed = 0
+                        self.currentState += 1
+                    else:
+                        self.currentState = self.states
+                        self.ready = True
+        else:
+            if toolSelected != "harvester":
+                if self.mouseState != pygame.mouse.get_pressed()[0]:
+                    self.mouseState = pygame.mouse.get_pressed()[0]
+                    if not self.mouseState and self.rect.collidepoint(pygame.mouse.get_pos()):
+                        self.plant(toolSelected)
 
     def draw(self):
-        self.exportSurface.blit(self.spritesheet, self.position, pygame.Rect((self.currentState - 1) * self.spriteSize[0], 0, self.spriteSize[0], self.spriteSize[1]))
+        if self.planted:
+            self.exportSurface.blit(self.spritesheet, self.position, pygame.Rect((self.currentState - 1) * self.spriteSize[0], 0, self.spriteSize[0], self.spriteSize[1]))
+
+    def plant(self, cropType):
+        self.planted = True
+        self.cropType = cropType
+        self.spriteSheet = self.loadImage()
+        self.daysToGrow = self.generateNewStateChangeTime()
+
+    def harvest(self):
+        self.planted = False
+        self.cropType = None
+        self.spriteSheet = None
+
+class Farm:
+    def __init__(self, exportSurface, exportPosition, exportScaling = 1):
+        self.exportSurface = exportSurface
+        self.exportPosition = exportPosition
+        self.exportScaling = exportScaling
+
+        self.surface = pygame.surface.Surface([1000, 1000])
+
+    def update(self, deltaInSeconds):
+        pass
+        
+    def draw(self):
+        self.surface.fill([89,41,41])
+
+        
+        
+        if self.exportScaling != 1:
+            self.exportSurface.blit(pygame.transform.scale(self.surface, [self.exportScaling * self.surface.get_width(), self.exportScaling * self.surface.get_height()]), self.exportPosition)
+        else:
+            self.exportSurface.blit(self.surface, self.exportPosition)
 
 if __name__ == '__main__':
     run = True

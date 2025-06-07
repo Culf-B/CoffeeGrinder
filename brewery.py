@@ -128,6 +128,45 @@ class GrindCup(PhysicsObject):
     def isFull(self):
         return self.full
 
+class Brewery:
+    def __init__(self, exportSurface, exportPosition, exportScaling = 1):
+        self.exportSurface = exportSurface
+        self.exportPosition = exportPosition
+        self.exportScaling = exportScaling
+
+        self.surface = pygame.surface.Surface([1000, 1000])
+        
+        self.table = Table(self.surface, [0, self.surface.get_height() - 50])
+        self.grindr = Grindr(self.surface, [600, self.surface.get_height() - 50 - 300])
+        self.roaster = Roaster(self.surface, [200, self.surface.get_height() - 50 - 250])
+
+        self.physController = PhysicsObjectController()
+
+        self.physController.add(
+            GrindCup(self.surface, pygame.Rect(500, 0, 50, 50))
+        )
+        self.physController.add(
+            RawBeans(self.surface, pygame.Rect(500, 0, 50, 50))
+        )
+    
+    def update(self, deltaInSeconds):
+        self.grindr.update(self.physController, deltaInSeconds)
+        self.roaster.update(self.physController, deltaInSeconds)
+        self.physController.update(deltaInSeconds, self.table.getRect())
+        
+    def draw(self):
+        self.surface.fill([255, 255, 255])
+
+        self.table.draw()
+        self.grindr.draw()
+        self.roaster.draw()
+        self.physController.draw()
+        
+        if self.exportScaling != 1:
+            self.exportSurface.blit(pygame.transform.scale(self.surface, [self.exportScaling * self.surface.get_width(), self.exportScaling * self.surface.get_height()]), self.exportPosition)
+        else:
+            self.exportSurface.blit(self.surface, self.exportPosition)
+
 if __name__ == '__main__':
     pygame.init()
     run = True

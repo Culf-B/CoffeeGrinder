@@ -4,6 +4,67 @@ class Storage:
     def __init__(self):
         pass
 
+class SceneChangeButton:
+    def __init__(self, surface, rect, fontsize, changeSceneFunction, sceneToChangeTo):
+        self.exportSurface = surface
+        self.rect = rect
+
+        self.changeSceneFunction = changeSceneFunction
+        self.sceneToChangeTo = sceneToChangeTo
+
+        self.font = pygame.font.Font("./assets/SueEllenFrancisco-Regular.ttf", fontsize)
+
+        self.mouseState = False
+
+        self.hover = False
+        self.click = False
+
+        self.standardBgColor = [250, 221, 193]
+        self.standardFgColor = [139, 92, 53]
+
+        self.hoverBgColor = [250, 213, 178]
+
+        self.clickBgColor = [230, 109, 109]
+
+        self.textSurface = self.font.render(self.sceneToChangeTo.capitalize(), True, self.standardFgColor)
+        self.rect.size = self.textSurface.get_size()
+        self.rect.width *= 1.5
+        self.rect.height *= 1.1
+
+    def update(self):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            self.hover = True
+
+            if self.mouseState != pygame.mouse.get_pressed()[0]:
+                self.mouseState = pygame.mouse.get_pressed()[0]
+
+                if not self.mouseState:
+                    self.changeSceneFunction(self.sceneToChangeTo)
+                else:
+                    self.click = True
+        else:
+            self.hover = False
+            self.click = False
+
+    def draw(self):
+        if not self.hover and not self.click:
+            self.bgToUse = self.standardBgColor
+            self.fgToUse = self.standardFgColor
+        elif self.hover and not self.click:
+            self.bgToUse = self.hoverBgColor
+            self.fgToUse = self.standardFgColor
+        elif not self.hover and self.click:
+            self.bgToUse = self.clickBgColor
+            self.fgToUse = self.standardFgColor
+
+        pygame.draw.rect(self.exportSurface, self.bgToUse, self.rect)
+        pygame.draw.rect(self.exportSurface, self.fgToUse, self.rect, 2)
+        
+        self.exportSurface.blit(
+            self.textSurface,
+            [self.rect.x + self.rect.width / 2 - self.textSurface.get_width() / 2, self.rect.y + self.rect.height / 2 - self.textSurface.get_height() / 2]
+        )
+
 class Table:
     def __init__(self, surface, position):
         self.exportSurface = surface
