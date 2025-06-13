@@ -91,7 +91,6 @@ class Grindr:
                 self.exportSurface.blit(self.cupImage, self.position)
         self.exportSurface.blit(self.settingImages[self.currentGrindSetting - 1], self.position)
 
-
 class Roaster:
     def __init__(self, surface, position):
         self.exportSurface = surface

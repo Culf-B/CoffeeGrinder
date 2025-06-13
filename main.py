@@ -30,7 +30,7 @@ def findSurroundingScenes(scene, scenes):
         
 def updateButtons():
     surroundingScenes = findSurroundingScenes(currentScene, scenes)
-    return SceneChangeButton(screen, pygame.Rect(20, 20, 75, 50), 40, goToScene, surroundingScenes[0]), SceneChangeButton(screen, pygame.Rect(905, 20, 75, 50), 40, goToScene, surroundingScenes[1])
+    return SceneChangeButton(screen, pygame.Rect(20, 20, 75, 50), 40, goToScene, surroundingScenes[0]), SceneChangeButton(screen, pygame.Rect(980, 20, 75, 50), 40, goToScene, surroundingScenes[1], flipX = True)
 
 def goToScene(scene):
     global leftButton, rightButton, currentScene

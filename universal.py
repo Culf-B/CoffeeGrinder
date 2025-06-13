@@ -5,7 +5,7 @@ class Storage:
         pass
 
 class SceneChangeButton:
-    def __init__(self, surface, rect, fontsize, changeSceneFunction, sceneToChangeTo):
+    def __init__(self, surface, rect, fontsize, changeSceneFunction, sceneToChangeTo, flipX = False):
         self.exportSurface = surface
         self.rect = rect
 
@@ -30,6 +30,9 @@ class SceneChangeButton:
         self.rect.size = self.textSurface.get_size()
         self.rect.width *= 1.5
         self.rect.height *= 1.1
+
+        if flipX:
+            self.rect.x = self.rect.x - self.rect.width
 
     def update(self):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
