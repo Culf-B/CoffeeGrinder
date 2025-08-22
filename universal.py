@@ -1,8 +1,123 @@
 import pygame
+from math import dist
 
-class Storage:
-    def __init__(self):
-        pass
+class Inventory:
+    def __init__(self, posRelToExportSurf = [0, 0]):
+        self.image = pygame.image.load("./assets/beanventory.png")
+        self.rect = pygame.Rect(posRelToExportSurf, self.image.get_size())
+
+        self.mouseState = False
+
+        self.tiles = []
+        for i in range(3): # X axis
+            for j in range(4): # Y axis
+                self.tiles.append(
+                    InventoryTile(
+                        # TODO: This doesnt align perfectly
+                        pygame.Rect(
+                            (i + 1) * self.image.get_width() * 0.107 + i * self.image.get_width() * 0.58 // 3,
+                            (j + 1) * self.image.get_height() * 0.045 + (j + 1) * self.image.get_height() * 0.75 // 5,
+                            self.image.get_width() * 0.58 // 3,
+                            self.image.get_height() * 0.75 // 5
+                        )
+                    )
+                )
+
+    def addObj(self, obj):
+        objPos = list(obj.getRect().center)
+        objPos[0] -= self.rect.x
+        objPos[1] -= self.rect.y
+        tilesDistSorted = self.tiles.copy()
+        tilesDistSorted.sort(key = lambda tile: dist(tile.relRect.center, objPos))
+
+        for tile in tilesDistSorted:
+            if tile.getObj() == None:
+                tile.setObj(obj)
+                return True
+        return False
+
+    def hasObj(self, obj):
+        for tile in self.tiles:
+            if tile.getObj() == obj:
+                return True
+        return False
+
+    def setPos(self, pos):
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+
+    def update(self, objects, objectsManager):
+        for obj in objects:
+            #print(self.rect.topleft, self.rect.size, obj.getRect().topleft, obj.getRect().size, self.rect.colliderect(obj.getRect()), obj.isSelected(), obj.isPickupAble())
+            if not obj.isSelected() and obj.isPickupAble() and self.rect.colliderect(obj.getRect()):
+                # Delete from obj manager if added successfully
+                #print("Test")
+                if self.addObj(obj):
+                    objectsManager.delete(obj)
+
+        newMouseState = pygame.mouse.get_pressed()[0]
+        mpos = list(pygame.mouse.get_pos())
+        # Correct mousepos for position offset (tiles dont know their pos offset, only in draw)
+        mposOffset = mpos.copy()
+        mposOffset[0] -= self.rect.x
+        mposOffset[1] -= self.rect.y
+
+        if newMouseState != self.mouseState:
+            self.mouseState = newMouseState
+            # Mouse has been presseed
+            if self.mouseState:
+                # Select object from inventory
+                if objectsManager.getSelected() == None:
+                    for tile in self.tiles:
+                        if tile.relRect.collidepoint(mposOffset):
+                            obj = tile.getObj()
+                            if obj != None:
+                                tile.setObj(None)
+                                obj.setToMousePos(mpos)
+                                objectsManager.addAndSelectObj(obj)
+                            break
+
+    def draw(self, exportSurface):
+        exportSurface.blit(self.image, self.rect.topleft)
+
+        # Tile hitboxes
+        for tile in self.tiles:
+            #pygame.draw.rect(exportSurface, [0, 0, 0, 0.1], tile.getRelRect().copy().move(pos), 5)
+            tile.draw(exportSurface, self.rect.topleft)
+
+
+    def getImage(self):
+        return self.image
+    
+class InventoryTile:
+    def __init__(self, relRect, obj = None):
+        self.relRect = relRect
+        self.obj = obj
+    
+    def getRelRect(self):
+        return self.relRect
+    
+    def getObj(self):
+        return self.obj
+    
+    def setObj(self, obj):
+        self.obj = obj
+
+    def draw(self, exportSurface, posOffset):
+        if self.obj != None:
+            
+            # Fit object to tile
+            self.objRectSize = list(self.obj.getRect().size)
+            
+            self.ratio = min(self.relRect.size) * 0.9 / max(self.objRectSize)
+
+            self.objRectSize[0] *= self.ratio
+            self.objRectSize[1] *= self.ratio
+
+            self.objRect = pygame.Rect(self.relRect.x + posOffset[0] + self.relRect.width // 2 - self.objRectSize[0] // 2, self.relRect.y + posOffset[1] + self.relRect.height // 2 - self.objRectSize[1] // 2, self.objRectSize[0], self.objRectSize[1])
+
+            # Draw the object using custom rect and surface
+            self.obj.drawSetRectAndSurf(self.objRect, exportSurface)
 
 class SceneChangeButton:
     def __init__(self, surface, rect, fontsize, changeSceneFunction, sceneToChangeTo, flipX = False):
@@ -133,6 +248,11 @@ class PhysicsObjectController:
                 obj.select()
                 self.selectedObject = obj
                 return
+            
+    def addAndSelectObj(self, obj):
+        self.add(obj)
+        self.selectedObject = obj
+        self.selectedObject.select()
     
     def unselect(self, mouseVel):
         if self.selectedObject != None:
@@ -141,9 +261,12 @@ class PhysicsObjectController:
 
     def getObjects(self):
         return self.objects
+    
+    def getSelected(self):
+        return self.selectedObject
 
 class PhysicsObject:
-    def __init__(self, surface, rect, color = [0, 0, 255]):
+    def __init__(self, surface, rect, color = [0, 0, 255], pickupAble = False):
         self.exportSurface = surface
         self.rect = rect
         self.color = color
@@ -154,6 +277,7 @@ class PhysicsObject:
         self.gnidningskoefficient = 0.8 # Gnidningskoefficient (men ikke rigtigt gad ikke fysikke rigtigt her)
 
         self.selected = False
+        self.pickupAble = pickupAble
 
     def update(self, deltaInSec, tableRect, mpos):
         self.velocity += self.constantForces * deltaInSec
@@ -174,8 +298,7 @@ class PhysicsObject:
 
 
         if self.selected:
-            self.rect.x = mpos[0] - self.rect.width / 2
-            self.rect.y = mpos[1] - self.rect.height / 2
+            self.setToMousePos(mpos)
 
             self.velocity *= 0
 
@@ -197,6 +320,10 @@ class PhysicsObject:
             self.rect.y = self.boundsRect.y + self.boundsRect.height - self.rect.height
             self.velocity.y *= -1
 
+    def setToMousePos(self, mpos):
+        self.rect.x = mpos[0] - self.rect.width / 2
+        self.rect.y = mpos[1] - self.rect.height / 2
+
     def getRect(self):
         return self.rect
     
@@ -206,9 +333,29 @@ class PhysicsObject:
     def unselect(self, mouseVel):
         self.velocity = mouseVel
         self.selected = False
+
+    def isSelected(self):
+        return self.selected
+    
+    def isPickupAble(self):
+        return self.pickupAble
     
     def draw(self):
         pygame.draw.rect(self.exportSurface, self.color, self.rect)
+
+    def drawSetRectAndSurf(self, rect, surface):
+        '''
+        Kinda ugly function for drawing using custom rect and surface, used by InventoryTile
+        '''
+        self.oldExportSurface = self.exportSurface
+        self.oldRect = self.rect
+        self.exportSurface = surface
+        self.rect = rect
+        
+        self.draw()
+
+        self.exportSurface = self.oldExportSurface
+        self.rect = self.oldRect
 
 class CoffeeStat:
     def __init__(self, beantype = "arabica"):

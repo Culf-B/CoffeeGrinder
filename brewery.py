@@ -211,7 +211,7 @@ class EspressoMachine:
 
 class RawBeans(PhysicsObject):
     def __init__(self, surface, rect, coffeeStat, color = [255, 50, 20]):
-        super().__init__(surface, rect, color)
+        super().__init__(surface, rect, color, pickupAble = True)
         self.coffeeStat = coffeeStat
     
     def getCoffeeStat(self):
@@ -219,7 +219,7 @@ class RawBeans(PhysicsObject):
 
 class RoastedBeans(PhysicsObject):
     def __init__(self, surface, rect, coffeeStat, color = [102, 51, 0]):
-        super().__init__(surface, rect, color)
+        super().__init__(surface, rect, color, pickupAble = True)
         self.coffeeStat = coffeeStat
     
     def getCoffeeStat(self):
@@ -286,12 +286,16 @@ class CoffeeCup(PhysicsObject):
         self.selectedSinceBrew = True
 
 class Brewery:
-    def __init__(self, exportSurface, exportPosition, exportScaling = 1):
+    def __init__(self, exportSurface, exportPosition, inventory, exportScaling = 1):
         self.exportSurface = exportSurface
         self.exportPosition = exportPosition
         self.exportScaling = exportScaling
 
-        self.surface = pygame.surface.Surface([1000, 1000])
+        self.inventory = inventory
+        
+        self.surface = pygame.surface.Surface([1000 + self.inventory.getImage().get_width(), 1000])
+
+        self.inventory.setPos([self.surface.get_width() - self.inventory.getImage().get_width(), 0])
         
         self.table = Table(self.surface, [0, self.surface.get_height() - 50])
         self.grindr = Grindr(self.surface, [400, self.surface.get_height() - 50 - 279])
@@ -318,6 +322,7 @@ class Brewery:
         self.roaster.update(self.physController, deltaInSeconds)
         self.espressoMachine.update(self.physController, deltaInSeconds)
         self.physController.update(deltaInSeconds, self.table.getRect())
+        self.inventory.update(self.physController.getObjects(), self.physController)
         
     def draw(self):
         self.surface.fill([255, 255, 255])
@@ -326,6 +331,9 @@ class Brewery:
         self.grindr.draw()
         self.roaster.draw()
         self.espressoMachine.draw()
+
+        self.inventory.draw(self.surface)
+
         self.physController.draw()
         
         if self.exportScaling != 1:

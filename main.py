@@ -2,18 +2,20 @@ import pygame
 
 from brewery import Brewery
 from farm import Farm
-from universal import SceneChangeButton
+from universal import SceneChangeButton, Inventory
 
 pygame.init()
 
 run = True
-screen = pygame.display.set_mode([1400, 1000])
+screen = pygame.display.set_mode([1706, 1000])
 pygame.display.set_caption("Kaffespil")
 clock = pygame.time.Clock()
 
+inventory = Inventory()
+
 scenes = {
     "farm": Farm(screen, [0, 0]),
-    "brewery": Brewery(screen, [0, 0])
+    "brewery": Brewery(screen, [0, 0], inventory = inventory)
 }
 currentScene = "brewery"
 
