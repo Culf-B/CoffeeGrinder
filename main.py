@@ -7,7 +7,7 @@ from universal import SceneChangeButton, Inventory
 pygame.init()
 
 run = True
-screen = pygame.display.set_mode([1706, 1000])
+screen = pygame.display.set_mode([1600, 1000])
 pygame.display.set_caption("Kaffespil")
 clock = pygame.time.Clock()
 

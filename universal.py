@@ -4,22 +4,23 @@ from math import dist
 class Inventory:
     def __init__(self, posRelToExportSurf = [0, 0]):
         self.image = pygame.image.load("./assets/beanventory.png")
+        self.tileImage = pygame.image.load("./assets/beanventoryTile.png")
         self.rect = pygame.Rect(posRelToExportSurf, self.image.get_size())
 
         self.mouseState = False
 
         self.tiles = []
-        for i in range(3): # X axis
-            for j in range(4): # Y axis
+        for i in range(4): # X axis
+            for j in range(5): # Y axis
                 self.tiles.append(
                     InventoryTile(
-                        # TODO: This doesnt align perfectly
                         pygame.Rect(
-                            (i + 1) * self.image.get_width() * 0.107 + i * self.image.get_width() * 0.58 // 3,
-                            (j + 1) * self.image.get_height() * 0.045 + (j + 1) * self.image.get_height() * 0.75 // 5,
-                            self.image.get_width() * 0.58 // 3,
-                            self.image.get_height() * 0.75 // 5
-                        )
+                            50 + i * 1.333 * 100,
+                            163.33 + j * 1.333 * 100,
+                            100,
+                            100
+                        ),
+                        self.tileImage
                     )
                 )
 
@@ -90,8 +91,11 @@ class Inventory:
         return self.image
     
 class InventoryTile:
-    def __init__(self, relRect, obj = None):
+    def __init__(self, relRect, image, obj = None):
         self.relRect = relRect
+        self.image = image
+        if self.relRect.size != self.image.get_size():
+            self.image = pygame.transform.scale(self.image, self.relRect.size)
         self.obj = obj
     
     def getRelRect(self):
@@ -104,12 +108,14 @@ class InventoryTile:
         self.obj = obj
 
     def draw(self, exportSurface, posOffset):
+        exportSurface.blit(self.image, (self.relRect.x + posOffset[0], self.relRect.y + posOffset[1]))
+
         if self.obj != None:
             
             # Fit object to tile
             self.objRectSize = list(self.obj.getRect().size)
             
-            self.ratio = min(self.relRect.size) * 0.9 / max(self.objRectSize)
+            self.ratio = min(self.relRect.size) * 0.75 / max(self.objRectSize)
 
             self.objRectSize[0] *= self.ratio
             self.objRectSize[1] *= self.ratio
