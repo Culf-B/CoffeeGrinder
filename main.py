@@ -14,7 +14,7 @@ clock = pygame.time.Clock()
 inventory = Inventory()
 
 scenes = {
-    "farm": Farm(screen, [0, 0]),
+    "farm": Farm(screen, [0, 0], inventory = inventory),
     "brewery": Brewery(screen, [0, 0], inventory = inventory)
 }
 currentScene = "brewery"
@@ -37,10 +37,13 @@ def updateButtons():
 def goToScene(scene):
     global leftButton, rightButton, currentScene
     currentScene = scene
+    scenes[currentScene].setCurrentScene()
 
     leftButton, rightButton = updateButtons()
 
 leftButton, rightButton = updateButtons()
+
+goToScene(currentScene)
 
 while run:
     for event in pygame.event.get():

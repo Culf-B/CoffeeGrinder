@@ -1,5 +1,6 @@
 from random import randint
 import pygame
+from universal import PhysicsObjectController
 pygame.init()
 
 class Tile:
@@ -86,21 +87,32 @@ class Tile:
         self.spriteSheet = None
 
 class Farm:
-    def __init__(self, exportSurface, exportPosition, exportScaling = 1):
+    def __init__(self, exportSurface, exportPosition, inventory, exportScaling = 1):
         self.exportSurface = exportSurface
         self.exportPosition = exportPosition
         self.exportScaling = exportScaling
 
-        self.surface = pygame.surface.Surface([1000, 1000])
+        self.inventory = inventory
+
+        self.surface = pygame.surface.Surface([1000 + self.inventory.getImage().get_width(), 1000])        
+
+        self.physController = PhysicsObjectController()
+
+    def setCurrentScene(self):
+        self.inventory.setPos([self.surface.get_width() - self.inventory.getImage().get_width(), 0])
+        self.inventory.setSceneSurface(self.surface)
 
     def update(self, deltaInSeconds):
-        pass
-        
+        self.inventory.update(self.physController.getObjects(), self.physController)
+        self.physController.update(deltaInSeconds, pygame.Rect(0, 0, 0, 0)) # Tablerect is non existant here, should probably be changed in physcontroller...
+
     def draw(self):
         self.surface.fill([89,41,41])
 
+        self.inventory.draw(self.surface)
         
-        
+        self.physController.draw()
+
         if self.exportScaling != 1:
             self.exportSurface.blit(pygame.transform.scale(self.surface, [self.exportScaling * self.surface.get_width(), self.exportScaling * self.surface.get_height()]), self.exportPosition)
         else:

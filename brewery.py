@@ -1,5 +1,5 @@
 import pygame
-from universal import Table, PhysicsObject, PhysicsObjectController, CoffeeStat
+from universal import Table, PhysicsObject, PhysicsObjectController, CoffeeStat, RawBeans, RoastedBeans
 
 class Grindr:
     def __init__(self, surface, position):
@@ -209,22 +209,6 @@ class EspressoMachine:
     def draw(self):
         self.exportSurface.blit(self.image, self.position)
 
-class RawBeans(PhysicsObject):
-    def __init__(self, surface, rect, coffeeStat, color = [255, 50, 20]):
-        super().__init__(surface, rect, color, pickupAble = True)
-        self.coffeeStat = coffeeStat
-    
-    def getCoffeeStat(self):
-        return self.coffeeStat
-
-class RoastedBeans(PhysicsObject):
-    def __init__(self, surface, rect, coffeeStat, color = [102, 51, 0]):
-        super().__init__(surface, rect, color, pickupAble = True)
-        self.coffeeStat = coffeeStat
-    
-    def getCoffeeStat(self):
-        return self.coffeeStat
-
 class GrindCup(PhysicsObject):
     def __init__(self, surface, rect, color = [204, 0, 255], full = False, coffeeStat = None, centerX = False, oppositeY = False):
         rect.size = [75, 75]
@@ -294,8 +278,6 @@ class Brewery:
         self.inventory = inventory
         
         self.surface = pygame.surface.Surface([1000 + self.inventory.getImage().get_width(), 1000])
-
-        self.inventory.setPos([self.surface.get_width() - self.inventory.getImage().get_width(), 0])
         
         self.table = Table(self.surface, [0, self.surface.get_height() - 50])
         self.grindr = Grindr(self.surface, [400, self.surface.get_height() - 50 - 279])
@@ -316,6 +298,10 @@ class Brewery:
         self.physController.add(
             RawBeans(self.surface, pygame.Rect(10, 0, 50, 50), coffeeStat = CoffeeStat("arabica"))
         )
+        
+    def setCurrentScene(self):
+        self.inventory.setPos([self.surface.get_width() - self.inventory.getImage().get_width(), 0])
+        self.inventory.setSceneSurface(self.surface)
     
     def update(self, deltaInSeconds):
         self.grindr.update(self.physController, deltaInSeconds)

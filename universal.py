@@ -47,6 +47,9 @@ class Inventory:
         self.rect.x = pos[0]
         self.rect.y = pos[1]
 
+    def setSceneSurface(self, surface):
+        self.sceneSurface = surface
+
     def update(self, objects, objectsManager):
         for obj in objects:
             #print(self.rect.topleft, self.rect.size, obj.getRect().topleft, obj.getRect().size, self.rect.colliderect(obj.getRect()), obj.isSelected(), obj.isPickupAble())
@@ -75,6 +78,7 @@ class Inventory:
                             if obj != None:
                                 tile.setObj(None)
                                 obj.setToMousePos(mpos)
+                                obj.setSceneSurface(self.sceneSurface)
                                 objectsManager.addAndSelectObj(obj)
                             break
 
@@ -363,6 +367,9 @@ class PhysicsObject:
         self.exportSurface = self.oldExportSurface
         self.rect = self.oldRect
 
+    def setSceneSurface(self, surface):
+        self.exportSurface = surface
+
 class CoffeeStat:
     def __init__(self, beantype = "arabica"):
         self.beanRoastFlavours = {
@@ -450,3 +457,19 @@ class CoffeeStat:
             self.doppioGrindTexture = self.grindTexture
 
         self.brewType = "doppio"
+
+class RawBeans(PhysicsObject):
+    def __init__(self, surface, rect, coffeeStat, color = [255, 50, 20]):
+        super().__init__(surface, rect, color, pickupAble = True)
+        self.coffeeStat = coffeeStat
+    
+    def getCoffeeStat(self):
+        return self.coffeeStat
+
+class RoastedBeans(PhysicsObject):
+    def __init__(self, surface, rect, coffeeStat, color = [102, 51, 0]):
+        super().__init__(surface, rect, color, pickupAble = True)
+        self.coffeeStat = coffeeStat
+    
+    def getCoffeeStat(self):
+        return self.coffeeStat
