@@ -412,11 +412,11 @@ class CoffeeStat:
         if time < self.beanRoastFlavours[self.beantype]["roastTimes"][0] or time > self.beanRoastFlavours[self.beantype]["roastTimes"][-1]:
             self.beanRoastFlavour = "bad"
         elif time < self.beanRoastFlavours[self.beantype]["roastTimes"][1]:
-            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][1]
+            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][0]
         elif time < self.beanRoastFlavours[self.beantype]["roastTimes"][2]:
-            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][2]
+            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][1]
         elif time < self.beanRoastFlavours[self.beantype]["roastTimes"][3]:
-            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][3]
+            self.beanRoastFlavour = self.beanRoastFlavours[self.beantype]["flavours"][2]
         else:
             self.beanRoastFlavour = "impossible!?"
 
