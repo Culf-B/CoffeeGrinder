@@ -1,6 +1,6 @@
 from random import randint
 import pygame
-from universal import PhysicsObjectController, PhysicsObject, RawBeans
+from universal import PhysicsObjectController, PhysicsObject, RawBeans, CoffeeStat
 pygame.init()
 
 class Tile:
@@ -37,6 +37,10 @@ class Tile:
 
         if self.cropType != None:
             self.planted = True
+            # Set default cropstat when nothing has been specified
+            # TODO make system for creating planted tile with specified stat
+            if cropType == "coffee":
+                self.cropStat = CoffeeStat()
         else:
             self.planted = False
 

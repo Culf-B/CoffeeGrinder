@@ -364,6 +364,9 @@ class PhysicsObject:
     def isPickupAble(self):
         return self.pickupAble
     
+    def setPickupAble(self, pickupAble):
+        self.pickupAble = pickupAble
+    
     def draw(self):
         pygame.draw.rect(self.exportSurface, self.color, self.rect)
 

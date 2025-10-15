@@ -209,6 +209,32 @@ class EspressoMachine:
     def draw(self):
         self.exportSurface.blit(self.image, self.position)
 
+class CoffeeCupShelf:
+    def __init__(self, surface, position):
+        self.exportSurface = surface
+        self.position = position
+        self.image = pygame.image.load('./assets/cup_shelf.png').convert_alpha()
+
+        self.collisionRect = pygame.Rect(self.position[0], self.position[1], self.image.get_width(), self.image.get_height())
+    
+        self.mouseState = False
+
+    def update(self, physicsController, deltaInSec):
+        for obj in physicsController.getObjects():
+            if isinstance(obj, CoffeeCup):
+                if not obj.isSelected() and not obj.isFull() and self.collisionRect.colliderect(obj.getRect()):
+                    physicsController.delete(obj)
+
+        if self.mouseState != pygame.mouse.get_pressed()[0] and self.collisionRect.collidepoint(pygame.mouse.get_pos()):
+            self.mouseState = pygame.mouse.get_pressed()[0]
+            # Make a new cup
+            if self.mouseState and physicsController.getSelected() == None:
+                newCup = CoffeeCup(self.exportSurface, pygame.Rect(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1], 60, 60))
+                physicsController.addAndSelectObj(newCup)
+
+    def draw(self):
+        self.exportSurface.blit(self.image, self.position)
+
 class GrindCup(PhysicsObject):
     def __init__(self, surface, rect, color = [204, 0, 255], full = False, coffeeStat = None, centerX = False, oppositeY = False):
         rect.size = [75, 75]
@@ -245,10 +271,14 @@ class GrindCup(PhysicsObject):
     
 class CoffeeCup(PhysicsObject):
     def __init__(self, surface, rect, color = [200, 200, 200], full = False, coffeeStat = None):
-        super().__init__(surface, rect, color)
+        super().__init__(surface, rect, color, pickupAble = True)
+        rect.size = [60, 60]
         self.full = full
         self.coffeeStat = coffeeStat
         self.selectedSinceBrew = False
+
+        self.emptyCup = pygame.transform.scale(pygame.image.load('./assets/empty_cup.png').convert_alpha(), self.rect.size)
+        self.fullCup = pygame.transform.scale(pygame.image.load('./assets/full_cup.png').convert_alpha(), self.rect.size)
 
     def fill(self, coffeeStat):
         self.full = True
@@ -269,6 +299,12 @@ class CoffeeCup(PhysicsObject):
         self.selected = True
         self.selectedSinceBrew = True
 
+    def draw(self):
+        if self.isFull():
+            self.exportSurface.blit(pygame.transform.scale(self.fullCup, self.rect.size), [self.rect.x, self.rect.y])
+        else:
+            self.exportSurface.blit(pygame.transform.scale(self.emptyCup, self.rect.size), [self.rect.x, self.rect.y])
+
 class Brewery:
     def __init__(self, exportSurface, exportPosition, inventory, exportScaling = 1):
         self.exportSurface = exportSurface
@@ -283,14 +319,12 @@ class Brewery:
         self.grindr = Grindr(self.surface, [400, self.surface.get_height() - 50 - 279])
         self.roaster = Roaster(self.surface, [200, self.surface.get_height() - 50 - 250])
         self.espressoMachine = EspressoMachine(self.surface, [750, self.surface.get_height() - 50 - 175])
+        self.coffeeCupShelf = CoffeeCupShelf(self.surface, [500, 400])
 
         self.physController = PhysicsObjectController()
 
         self.physController.add(
             GrindCup(self.surface, pygame.Rect(10, 0, 75, 75))
-        )
-        self.physController.add(
-            CoffeeCup(self.surface, pygame.Rect(10, 0, 50, 50))
         )
         self.physController.add(
             RawBeans(self.surface, pygame.Rect(10, 0, 50, 50), coffeeStat = CoffeeStat("arabica"))
@@ -309,6 +343,7 @@ class Brewery:
         self.espressoMachine.update(self.physController, deltaInSeconds)
         self.physController.update(deltaInSeconds, self.table.getRect())
         self.inventory.update(self.physController.getObjects(), self.physController)
+        self.coffeeCupShelf.update(self.physController, deltaInSeconds)
         
     def draw(self):
         self.surface.fill([255, 255, 255])
@@ -317,6 +352,7 @@ class Brewery:
         self.grindr.draw()
         self.roaster.draw()
         self.espressoMachine.draw()
+        self.coffeeCupShelf.draw()
 
         self.inventory.draw(self.surface)
 
