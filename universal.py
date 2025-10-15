@@ -174,6 +174,9 @@ class SceneChangeButton:
             self.hover = False
             self.click = False
 
+    def isHovered(self):
+        return self.hover
+
     def draw(self):
         if not self.hover and not self.click:
             self.bgToUse = self.standardBgColor
@@ -207,14 +210,16 @@ class Table:
         return self.hitbox
 
 class PhysicsObjectController:
-    def __init__(self):
+    def __init__(self, gravityForce = pygame.Vector2(0, 1500)):
         self.objects = []
         self.selectedObject = None
         self.mouseState = False
         self.lastMousePos = None
         self.mouseVel = pygame.Vector2(0, 0)
+        self.gravityForce = gravityForce
 
     def add(self, obj):
+        obj.setConstantForces(self.gravityForce)
         self.objects.append(obj)
 
     def delete(self, objToDelete):
@@ -274,13 +279,19 @@ class PhysicsObjectController:
     
     def getSelected(self):
         return self.selectedObject
+    
+    def getSelectedToolName(self):
+        if self.selectedObject != None:
+            return self.selectedObject.getToolName()
+        else:
+            return ""
 
 class PhysicsObject:
-    def __init__(self, surface, rect, color = [0, 0, 255], pickupAble = False):
+    def __init__(self, surface, rect, color = [0, 0, 255], pickupAble = False, constantForces = pygame.Vector2(0, 1500),):
         self.exportSurface = surface
         self.rect = rect
         self.color = color
-        self.constantForces = pygame.Vector2(0, 1500)
+        self.constantForces = constantForces
         self.velocity = pygame.Vector2(0, 0)
         self.airResistanceMult = 0.1
         self.boundsRect = self.exportSurface.get_rect()
@@ -288,6 +299,9 @@ class PhysicsObject:
 
         self.selected = False
         self.pickupAble = pickupAble
+
+    def setConstantForces(self, constantForcesVector):
+        self.constantForces = constantForcesVector
 
     def update(self, deltaInSec, tableRect, mpos):
         self.velocity += self.constantForces * deltaInSec
@@ -369,6 +383,9 @@ class PhysicsObject:
 
     def setSceneSurface(self, surface):
         self.exportSurface = surface
+
+    def getToolName(self):
+        return ""
 
 class CoffeeStat:
     def __init__(self, beantype = "arabica"):
@@ -465,6 +482,9 @@ class RawBeans(PhysicsObject):
     
     def getCoffeeStat(self):
         return self.coffeeStat
+    
+    def getToolName(self):
+        return "coffee"
 
 class RoastedBeans(PhysicsObject):
     def __init__(self, surface, rect, coffeeStat, color = [102, 51, 0]):

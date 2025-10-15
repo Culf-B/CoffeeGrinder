@@ -303,7 +303,7 @@ class Brewery:
         self.inventory.setPos([self.surface.get_width() - self.inventory.getImage().get_width(), 0])
         self.inventory.setSceneSurface(self.surface)
     
-    def update(self, deltaInSeconds):
+    def update(self, deltaInSeconds, mouseOnUI):
         self.grindr.update(self.physController, deltaInSeconds)
         self.roaster.update(self.physController, deltaInSeconds)
         self.espressoMachine.update(self.physController, deltaInSeconds)

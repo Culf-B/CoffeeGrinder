@@ -11,6 +11,8 @@ screen = pygame.display.set_mode([1600, 1000])
 pygame.display.set_caption("Kaffespil")
 clock = pygame.time.Clock()
 
+mouseOnUI = False
+
 inventory = Inventory()
 
 scenes = {
@@ -54,9 +56,17 @@ while run:
 
     screen.fill([247, 222, 196])
 
-    scenes[currentScene].update(deltaInSeconds)
     leftButton.update()
     rightButton.update()
+
+    if leftButton.isHovered() or rightButton.isHovered():
+        mouseOnUI = True
+    else:
+        mouseOnUI = False
+    
+
+    scenes[currentScene].update(deltaInSeconds, mouseOnUI)
+    
 
     scenes[currentScene].draw()
     
