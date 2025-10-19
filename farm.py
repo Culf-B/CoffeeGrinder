@@ -77,6 +77,7 @@ class Tile:
                         self.mouseState = pygame.mouse.get_pressed()[0]
                         if not self.mouseState and self.rect.collidepoint(pygame.mouse.get_pos()):
                             self.harvest(physObjController)
+                            self.ready = False
                 else:
                     self.daysPassed += daysPassed
                     if self.daysPassed >= self.daysToGrow:
@@ -121,7 +122,6 @@ class Tile:
         self.currentState = 1
         self.daysPassed = 0
         
-
 class Farm:
     def __init__(self, exportSurface, exportPosition, inventory, exportScaling = 1):
         self.exportSurface = exportSurface
