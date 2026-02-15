@@ -1,6 +1,6 @@
 from random import randint
 import pygame
-from universal import PhysicsObjectController, PhysicsObject, RawBeans, CoffeeStat
+from universal import PhysicsObjectController, PhysicsObject, RawBeans, CoffeeStat, SpriteStateHandler
 pygame.init()
 
 class Tile:
@@ -185,7 +185,25 @@ class Farm:
 class Axe(PhysicsObject):
     def __init__(self, surface, rect, color = [255, 50, 255]):
         super().__init__(surface, rect, color, pickupAble = False)
-    
+
+        self.defaultImage = pygame.image.load("./assets/farm/axe.png").convert_alpha()
+        self.defaultImage = pygame.transform.scale(self.defaultImage, self.rect.size)
+
+        self.stateHandler = SpriteStateHandler()
+        self.stateHandler.addImageState("default", self.defaultImage)
+        self.stateHandler.setstate("default")
+
+        self.nextFrame = self.defaultImage
+
+    def update(self, deltaInSec, tableRect, mpos):
+        super().update(deltaInSec, tableRect, mpos)
+
+        self.nextFrame = self.stateHandler.frame(deltaInSec)
+
+
+    def draw(self):
+        self.exportSurface.blit(self.nextFrame, self.rect.topleft)
+
     def getToolName(self):
         return "harvester"
 

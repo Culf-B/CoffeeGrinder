@@ -1,5 +1,6 @@
 import pygame
 from math import dist
+import os
 
 class Inventory:
     def __init__(self, posRelToExportSurf = [0, 0]):
@@ -287,7 +288,7 @@ class PhysicsObjectController:
             return ""
 
 class PhysicsObject:
-    def __init__(self, surface, rect, color = [0, 0, 255], pickupAble = False, constantForces = pygame.Vector2(0, 1500),):
+    def __init__(self, surface, rect, color = [0, 0, 255], pickupAble = False, constantForces = pygame.Vector2(0, 1500)):
         self.exportSurface = surface
         self.rect = rect
         self.color = color
@@ -389,6 +390,50 @@ class PhysicsObject:
 
     def getToolName(self):
         return ""
+
+class Animaiton:
+    def __init__(self, timePerFrame):
+        self.timePerFrame = timePerFrame
+        self.timeElapsed = 0
+        self.images = []
+        self.currentFrame = 0
+
+    def loadFromFilenames(self, filenames, pathPrefix = ""):
+        for filename in filenames:
+            self.images.append(pygame.image.load(os.path.join(pathPrefix, filename)).convert_alpha())
+
+    def frame(self, delta):
+        self.timeElapsed += delta
+        if self.timeElapsed >= self.timePerFrame:
+            self.timeElapsed -= self.timePerFrame
+            self.currentFrame += 1
+            if self.currentFrame > len(self.images) - 1:
+                self.currentFrame = 0
+        
+        return self.images[self.currentFrame]
+    
+class SpriteStateHandler:
+    def __init__(self):
+        self.currentState = ""
+        self.states = {}
+
+    def addAnimationState(self, name, animation):
+        self.states[name] = {"type": "animation", "object": animation}
+    
+    def addImageState(self, name, image):
+        self.states[name] = {"type": "image", "object": image}
+
+    def setstate(self, newState):
+        if newState in self.states:
+            self.currentState = newState
+        else:
+            raise Exception(f'Invalid state: "{self.currentState}"')
+
+    def frame(self, delta):
+        if self.states[self.currentState]["type"] == "animation": # Animated state
+            return self.states[self.currentState]["object"].frame(delta)
+        else: # Image state
+            return self.states[self.currentState]["object"]
 
 class CoffeeStat:
     def __init__(self, beantype = "arabica"):
